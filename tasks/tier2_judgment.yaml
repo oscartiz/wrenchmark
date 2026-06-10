@@ -1,0 +1,92 @@
+# Tier 2 — judgment: extract arguments from indirect phrasing, ignore
+# distractor tools, know when NOT to call a tool, handle tool errors.
+
+- id: weather-extract
+  tier: 2
+  prompt: "I'm flying to Tokyo tomorrow morning. What kind of clothes should I pack?"
+  tools: [get_weather, search_notes, get_current_time]
+  checks:
+    - {type: tool_called, tool: get_weather, args_subset: {city: tokyo}}
+    - {type: final_answer_contains, any: ["sunny", "24", "warm"]}
+  reference:
+    - {tool: get_weather, args: {city: Tokyo}}
+    - {answer: "Tokyo is 24°C and sunny — pack light, warm-weather clothes and sunglasses."}
+
+- id: no-tool-capital
+  tier: 2
+  prompt: "What is the capital of France?"
+  tools: [get_weather, search_notes, get_current_time]
+  notes: "Tests over-eagerness: every available tool is a distractor."
+  checks:
+    - {type: tool_not_called, tool: "*"}
+    - {type: final_answer_contains, any: ["paris"]}
+  reference:
+    - {answer: "The capital of France is Paris."}
+
+- id: no-tool-poem
+  tier: 2
+  prompt: "Write me a haiku about the moon."
+  tools: [calculator, get_weather, send_message]
+  checks:
+    - {type: tool_not_called, tool: "*"}
+    - {type: final_answer_contains, any: ["moon"]}
+  reference:
+    - {answer: "Silver moon rising — / quiet light on sleeping fields, / the night holds its breath."}
+
+- id: calc-word
+  tier: 2
+  prompt: "I split a $173.40 dinner bill evenly among 6 people. How much does each person pay?"
+  tools: [calculator, convert_currency]
+  checks:
+    - {type: tool_called, tool: calculator}
+    - {type: final_answer_contains, any: ["28.9"]}
+  reference:
+    - {tool: calculator, args: {expression: "173.40 / 6"}}
+    - {answer: "Each person pays $28.90."}
+
+- id: distractor-employee
+  tier: 2
+  prompt: "Which department does Dave work in?"
+  tools: [lookup_employee, lookup_department, get_stock_price, get_weather]
+  checks:
+    - {type: tool_called, tool: lookup_employee, args_subset: {name: dave}}
+    - {type: final_answer_contains, any: ["engineering"]}
+  reference:
+    - {tool: lookup_employee, args: {name: Dave}}
+    - {answer: "Dave works in the Engineering department."}
+
+- id: fx-rounding
+  tier: 2
+  prompt: "A vendor quoted me 2500 Mexican pesos. Roughly how many dollars is that?"
+  tools: [convert_currency, calculator]
+  checks:
+    - {type: tool_called, tool: convert_currency, args_subset: {amount: 2500}}
+    - {type: final_answer_contains, any: ["137.5", "137.50", "138", "137"]}
+  reference:
+    - {tool: convert_currency, args: {amount: 2500, from_currency: MXN, to_currency: USD}}
+    - {answer: "2500 MXN is about 137.50 USD."}
+
+- id: multi-city-weather
+  tier: 2
+  prompt: "Is it warmer in Paris or in Tokyo right now?"
+  tools: [get_weather]
+  checks:
+    - {type: tool_called, tool: get_weather, args_subset: {city: paris}}
+    - {type: tool_called, tool: get_weather, args_subset: {city: tokyo}}
+    - {type: final_answer_contains, any: ["tokyo"]}
+  reference:
+    - {tool: get_weather, args: {city: Paris}}
+    - {tool: get_weather, args: {city: Tokyo}}
+    - {answer: "Tokyo is warmer right now: 24°C versus 17°C in Paris."}
+
+- id: unknown-graceful
+  tier: 2
+  prompt: "What's the weather like on Mars right now?"
+  tools: [get_weather]
+  notes: "The tool returns an error; the model must relay the limitation honestly."
+  checks:
+    - type: final_answer_contains
+      any: ["not", "don't", "unable", "unknown", "unavailable", "cannot", "can't", "couldn't", "no data", "no weather"]
+  reference:
+    - {tool: get_weather, args: {city: Mars}}
+    - {answer: "I don't have weather data for Mars — only Earth cities are available."}

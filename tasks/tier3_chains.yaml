@@ -1,0 +1,84 @@
+# Tier 3 — multi-step chains: the output of one tool call is required as
+# the input of the next. This is where small models typically break.
+
+- id: chain-budget
+  tier: 3
+  prompt: "What is the budget of the department Alice works in?"
+  tools: [lookup_employee, lookup_department, calculator]
+  checks:
+    - {type: tool_called, tool: lookup_employee, args_subset: {name: alice}}
+    - {type: tool_called, tool: lookup_department, args_subset: {name: physics}}
+    - {type: final_answer_contains, any: ["120000", "120,000", "120k"]}
+  reference:
+    - {tool: lookup_employee, args: {name: Alice}}
+    - {tool: lookup_department, args: {name: Physics}}
+    - {answer: "Alice works in Physics, which has a budget of 120000 USD."}
+
+- id: chain-head-email
+  tier: 3
+  prompt: "What's the email address of the head of the Engineering department?"
+  tools: [lookup_department, lookup_employee, send_message]
+  checks:
+    - {type: tool_called, tool: lookup_department, args_subset: {name: engineering}}
+    - {type: tool_called, tool: lookup_employee, args_subset: {name: frank}}
+    - {type: final_answer_contains, any: ["frank@acme.io"]}
+  reference:
+    - {tool: lookup_department, args: {name: Engineering}}
+    - {tool: lookup_employee, args: {name: Frank}}
+    - {answer: "The head of Engineering is Frank — frank@acme.io."}
+
+- id: chain-stock-fx
+  tier: 3
+  prompt: "How much does one share of GLOBEX cost in euros?"
+  tools: [get_stock_price, convert_currency, calculator]
+  checks:
+    - {type: tool_called, tool: get_stock_price, args_subset: {ticker: globex}}
+    - {type: tool_called, tool: convert_currency}
+    - {type: final_answer_contains, any: ["64.7"]}
+  reference:
+    - {tool: get_stock_price, args: {ticker: GLOBEX}}
+    - {tool: convert_currency, args: {amount: 71.20, from_currency: USD, to_currency: EUR}}
+    - {answer: "One GLOBEX share costs about 64.73 EUR."}
+
+- id: chain-weather-msg
+  tier: 3
+  prompt: "Check the weather in London, then send Carol a message telling her whether she'll need an umbrella today."
+  tools: [get_weather, send_message]
+  checks:
+    - {type: tool_called, tool: get_weather, args_subset: {city: london}}
+    - type: tool_called
+      tool: send_message
+      args_subset: {recipient: carol}
+      args_contains: {body: ["umbrella", "rain"]}
+  reference:
+    - {tool: get_weather, args: {city: London}}
+    - {tool: send_message, args: {recipient: Carol, body: "It's rainy in London today (12°C) — you'll want an umbrella."}}
+    - {answer: "Done — it's rainy in London, so I messaged Carol that she'll need an umbrella."}
+
+- id: chain-calc-budget
+  tier: 3
+  prompt: "What is the combined budget of the Physics and Finance departments?"
+  tools: [lookup_department, calculator]
+  checks:
+    - {type: tool_called, tool: lookup_department, args_subset: {name: physics}}
+    - {type: tool_called, tool: lookup_department, args_subset: {name: finance}}
+    - {type: final_answer_contains, any: ["215000", "215,000", "215k"]}
+  reference:
+    - {tool: lookup_department, args: {name: Physics}}
+    - {tool: lookup_department, args: {name: Finance}}
+    - {tool: calculator, args: {expression: "120000 + 95000"}}
+    - {answer: "Combined, Physics (120000) and Finance (95000) have a budget of 215000 USD."}
+
+- id: chain-time-gym
+  tier: 3
+  prompt: "How many days from today until my gym membership renews? Check my notes for the renewal date."
+  tools: [get_current_time, search_notes, calculator]
+  checks:
+    - {type: tool_called, tool: get_current_time}
+    - {type: tool_called, tool: search_notes}
+    - {type: final_answer_contains, any: ["24"]}
+  reference:
+    - {tool: get_current_time, args: {}}
+    - {tool: search_notes, args: {query: gym}}
+    - {tool: calculator, args: {expression: "(30 - 9) + 3"}}
+    - {answer: "Today is June 9 and your membership renews July 3 — that's 24 days from now."}

@@ -1,0 +1,93 @@
+# Tier 1 — single tool call, arguments stated explicitly in the prompt.
+# A model that "speaks" tool-calling at all should pass these.
+
+- id: weather-paris
+  tier: 1
+  prompt: "What's the current temperature in Paris, in celsius?"
+  tools: [get_weather]
+  checks:
+    - {type: tool_called, tool: get_weather, args_subset: {city: paris}}
+    - {type: final_answer_contains, any: ["17"]}
+  reference:
+    - {tool: get_weather, args: {city: Paris}}
+    - {answer: "It is currently 17°C in Paris."}
+
+- id: stock-acme
+  tier: 1
+  prompt: "What is ACME stock trading at right now?"
+  tools: [get_stock_price]
+  checks:
+    - {type: tool_called, tool: get_stock_price, args_subset: {ticker: acme}}
+    - {type: final_answer_contains, any: ["142.5"]}
+  reference:
+    - {tool: get_stock_price, args: {ticker: ACME}}
+    - {answer: "ACME is trading at 142.50 USD per share."}
+
+- id: time-now
+  tier: 1
+  prompt: "What's today's date?"
+  tools: [get_current_time]
+  checks:
+    - {type: tool_called, tool: get_current_time}
+    - {type: final_answer_contains, any: ["2026-06-09", "june 9"]}
+  reference:
+    - {tool: get_current_time, args: {}}
+    - {answer: "Today is June 9, 2026 (2026-06-09)."}
+
+- id: calc-basic
+  tier: 1
+  prompt: "What is 1289 multiplied by 47?"
+  tools: [calculator]
+  checks:
+    - {type: tool_called, tool: calculator}
+    - {type: final_answer_contains, any: ["60583", "60,583"]}
+  reference:
+    - {tool: calculator, args: {expression: "1289 * 47"}}
+    - {answer: "1289 × 47 = 60583."}
+
+- id: employee-email
+  tier: 1
+  prompt: "What is Alice's email address?"
+  tools: [lookup_employee]
+  checks:
+    - {type: tool_called, tool: lookup_employee, args_subset: {name: alice}}
+    - {type: final_answer_contains, any: ["alice@acme.io"]}
+  reference:
+    - {tool: lookup_employee, args: {name: Alice}}
+    - {answer: "Alice's email address is alice@acme.io."}
+
+- id: note-wifi
+  tier: 1
+  prompt: "What's my wifi password? It should be in my notes."
+  tools: [search_notes]
+  checks:
+    - {type: tool_called, tool: search_notes}
+    - {type: final_answer_contains, any: ["hunter2-prime"]}
+  reference:
+    - {tool: search_notes, args: {query: wifi}}
+    - {answer: "Your router password is hunter2-prime."}
+
+- id: fx-simple
+  tier: 1
+  prompt: "Convert 100 EUR to USD."
+  tools: [convert_currency]
+  checks:
+    - {type: tool_called, tool: convert_currency, args_subset: {amount: 100}}
+    - {type: final_answer_contains, any: ["110"]}
+  reference:
+    - {tool: convert_currency, args: {amount: 100, from_currency: EUR, to_currency: USD}}
+    - {answer: "100 EUR is 110.00 USD."}
+
+- id: send-simple
+  tier: 1
+  prompt: 'Send Bob a message saying "standup moved to 10am".'
+  tools: [send_message]
+  checks:
+    - type: tool_called
+      tool: send_message
+      args_subset: {recipient: bob}
+      args_contains: {body: ["standup"]}
+    - {type: final_answer_contains, any: ["sent", "delivered", "done", "bob"]}
+  reference:
+    - {tool: send_message, args: {recipient: Bob, body: "standup moved to 10am"}}
+    - {answer: "Done — message sent to Bob."}

@@ -1,0 +1,31 @@
+[project]
+name = "wrenchmark"
+version = "0.1.0"
+description = "A verifiable tool-calling benchmark for local LLMs"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Oscar Tiznado" }]
+dependencies = [
+    "pyyaml>=6.0",
+    "rich>=13.0",
+    "matplotlib>=3.8",
+]
+
+[project.optional-dependencies]
+ollama = ["ollama>=0.4"]
+openai = ["openai>=1.40"]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.scripts]
+wrenchmark = "wrenchmark.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wrenchmark"]
+
+[tool.ruff]
+line-length = 100

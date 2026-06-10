@@ -1,0 +1,10 @@
+# Benchmark outputs
+results/
+
+# Python
+__pycache__/
+*.egg-info/
+.venv/
+dist/
+.pytest_cache/
+.ruff_cache/
