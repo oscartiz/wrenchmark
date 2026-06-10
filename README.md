@@ -138,7 +138,7 @@ Requires Python 3.11+. For local runs: [Ollama](https://ollama.com) with a tool-
 
 ## Roadmap
 
-- [ ] Published results table for 4–6 local models with analysis of failure modes
+- [x] Published results table for 5 local models with analysis of failure modes
 - [ ] Failure-mode taxonomy in the report (wrong tool vs. bad args vs. gave up vs. hallucinated answer)
 - [ ] Per-task difficulty calibration from observed pass rates
 - [ ] Parallel episode execution
