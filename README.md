@@ -96,13 +96,28 @@ Checks are deliberately tolerant where formatting doesn't matter (casefolded sub
 
 ## Results
 
-*Coming soon: Hermes 3 8B vs. Qwen 2.5 7B vs. Llama 3.2 3B vs. Mistral 7B on Apple Silicon.*
+**5 small local models × 22 tasks × 3 reps (330 episodes), Apple M4 / 16 GB, Ollama 0.30.7, June 2026:**
 
 | Model | Overall | T1 single call | T2 judgment | T3 chains | Malformed calls | Avg latency |
 |---|---|---|---|---|---|---|
-| *(pending)* | | | | | | |
+| qwen2.5:3b | **80% ± 5** | 92% ± 6 | 92% ± 6 | 50% ± 12 | 0.0% | 1.8s |
+| qwen2.5:1.5b | 67% ± 6 | 88% ± 7 | 79% ± 8 | 22% ± 10 | 16.9% | 1.2s |
+| llama3.2:3b | 58% ± 6 | 79% ± 8 | 67% ± 10 | 17% ± 9 | 0.0% | 2.4s |
+| smollm2:1.7b | 27% ± 5 | 33% ± 10 | 25% ± 9 | 22% ± 10 | 0.0% | 2.1s |
+| llama3.2:1b | 26% ± 5 | 46% ± 10 | 17% ± 8 | 11% ± 7 | 22.5% | 1.7s |
 
-Run it yourself: any Ollama model with tool support works out of the box, and any OpenAI-compatible endpoint (llama.cpp server, Together, OpenRouter) via `--provider openai --base-url ...`.
+![success by tier](benchmarks/2026-06-09-apple-m4/success_by_tier.png)
+
+**Findings:**
+
+- **Only Qwen knows when *not* to call a tool.** On the negative tasks ("What is the capital of France?" with tools available), both Llama 3.2 models and SmolLM2 scored **0/6** — they reach for a tool every single time. The Qwen models resisted 5/6. Over-eager tool calling is the clearest family-level separator in the whole benchmark.
+- **Two-hop chains are a wall below ~3B.** Three of the six T3 tasks (`chain-budget`, `chain-head-email`, `chain-time-gym`) were failed by *every* model in *every* rep (0/15 each). Only qwen2.5:3b crossed 50% on chains overall.
+- **Failure modes differ by family.** llama3.2:1b often emits the tool call as *JSON text in its answer* instead of a structured call (`{"type":"function","name":"get_weather",...}`) — it knows what a tool call looks like but not how to make one. qwen2.5:1.5b makes structured calls but malforms 17% of them; the 3B variants of both families make essentially zero malformed calls.
+- **Speed is not the trade-off.** qwen2.5:1.5b is both the fastest (1.2s/episode) and beats llama3.2:3b, which is twice its size.
+
+Raw episode records, report, and chart for this run are committed under [`benchmarks/2026-06-09-apple-m4/`](benchmarks/2026-06-09-apple-m4/). Reproduce with: `wrenchmark run --models qwen2.5:3b,qwen2.5:1.5b,llama3.2:3b,llama3.2:1b,smollm2:1.7b --reps 3`
+
+Any Ollama model with tool support works out of the box, and any OpenAI-compatible endpoint (llama.cpp server, Together, OpenRouter) via `--provider openai --base-url ...`.
 
 ## Installation
 
